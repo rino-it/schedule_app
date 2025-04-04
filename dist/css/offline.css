@@ -1,0 +1,192 @@
+/* Stili aggiuntivi per la modalità offline */
+.offline-toggle {
+    background: transparent;
+    color: var(--white);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-md);
+    transition: all var(--transition-fast);
+}
+
+.offline-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.offline-toggle.active {
+    background-color: var(--secondary-color);
+    color: var(--dark);
+}
+
+#connection-status {
+    position: fixed;
+    top: calc(var(--header-height) + var(--spacing-sm));
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    z-index: 95;
+    transition: all var(--transition-normal);
+    opacity: 1;
+}
+
+#connection-status.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+    pointer-events: none;
+}
+
+#connection-status.online {
+    background-color: var(--priority-2);
+    color: var(--white);
+}
+
+#connection-status.offline {
+    background-color: var(--priority-4);
+    color: var(--white);
+}
+
+#connection-status.syncing {
+    background-color: var(--priority-3);
+    color: var(--dark);
+}
+
+#connection-status .material-icons {
+    font-size: 18px;
+}
+
+.offline-mode .sync-dependent {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.overdue-warning {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--priority-4);
+    color: var(--white);
+    padding: var(--spacing-md);
+    transform: translateY(100%);
+    transition: transform var(--transition-normal);
+    z-index: 90;
+}
+
+.overdue-warning.show {
+    transform: translateY(0);
+}
+
+.overdue-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.overdue-header h3 {
+    margin: 0;
+    flex: 1;
+}
+
+.overdue-header .close-warning {
+    background: transparent;
+    color: var(--white);
+    font-size: 1.5rem;
+    padding: 0;
+}
+
+.overdue-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.overdue-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+}
+
+.tutorial-modal {
+    max-width: 600px;
+}
+
+.tutorial-step {
+    margin-bottom: var(--spacing-lg);
+}
+
+.tutorial-step h3 {
+    margin-bottom: var(--spacing-sm);
+}
+
+.tutorial-step ul {
+    padding-left: var(--spacing-lg);
+}
+
+.tutorial-step li {
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Toast notifications */
+.toast {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    background-color: var(--dark);
+    color: var(--white);
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    opacity: 0;
+    transition: all var(--transition-normal);
+    max-width: 80%;
+    text-align: center;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast.success {
+    background-color: var(--priority-2);
+}
+
+.toast.error {
+    background-color: var(--priority-5);
+}
+
+.toast.warning {
+    background-color: var(--priority-4);
+}
+
+.toast.info {
+    background-color: var(--primary-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .overdue-content {
+        flex-direction: column;
+    }
+    
+    .overdue-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    #connection-status {
+        width: 90%;
+        text-align: center;
+        justify-content: center;
+    }
+}

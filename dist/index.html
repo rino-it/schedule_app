@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4A90E2">
+    <title>TaskMaster - Sistema di Schedulazione Attività</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="icon" type="image/png" href="icons/favicon.png">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="icons/logo.svg" alt="TaskMaster Logo" id="app-logo">
+            <h1>TaskMaster</h1>
+        </div>
+        <nav>
+            <button id="btn-new-task" class="primary-btn">Nuova attività</button>
+            <button id="btn-menu" aria-label="Menu">
+                <span class="material-icons">menu</span>
+            </button>
+        </nav>
+    </header>
+
+    <div class="menu-panel" id="menu-panel">
+        <ul>
+            <li><button id="btn-show-week">Mostra settimana</button></li>
+            <li><button id="btn-show-today">Mostra oggi</button></li>
+            <li><button id="btn-recalculate">Ricalcola</button></li>
+            <li><button id="btn-time-analysis">Analisi tempo</button></li>
+            <li><button id="btn-export">Esporta calendario</button></li>
+            <li><button id="btn-import">Importa dati</button></li>
+            <li><button id="btn-travel-mode">Modalità viaggio</button></li>
+            <li><button id="btn-temp-priority">Priorità temporanea</button></li>
+        </ul>
+    </div>
+
+    <main>
+        <section id="view-container">
+            <!-- Qui verranno caricate le diverse viste (settimanale, giornaliera, ecc.) -->
+            <div id="welcome-screen" class="view active">
+                <h2>Benvenuto nel tuo Sistema di Schedulazione Attività</h2>
+                <p>Usa i comandi nel menu per visualizzare la tua pianificazione o aggiungi una nuova attività per iniziare.</p>
+                <div class="quick-actions">
+                    <button id="btn-quick-today" class="secondary-btn">Mostra oggi</button>
+                    <button id="btn-quick-new" class="primary-btn">Nuova attività</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modali -->
+    <div id="modal-container" class="modal-container">
+        <!-- Modal per nuova attività -->
+        <div id="new-task-modal" class="modal">
+            <div class="modal-header">
+                <h2>Nuova attività</h2>
+                <button class="close-modal" aria-label="Chiudi">&times;</button>
+            </div>
+            <div class="modal-content">
+                <form id="new-task-form">
+                    <div class="form-group">
+                        <label for="task-title">Titolo dell'attività*</label>
+                        <input type="text" id="task-title" required placeholder="Descrizione concisa">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-description">Descrizione dettagliata</label>
+                        <textarea id="task-description" placeholder="Cosa comporta esattamente quest'attività"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="task-duration">Durata stimata (ore)*</label>
+                            <input type="number" id="task-duration" min="0.25" step="0.25" required placeholder="Es. 1.5">
+                        </div>
+                        <div class="form-group half">
+                            <label for="task-priority">Livello di priorità*</label>
+                            <select id="task-priority" required>
+                                <option value="5">5 - Massima 🔴</option>
+                                <option value="4">4 - Alta 🟠</option>
+                                <option value="3" selected>3 - Media 🟡</option>
+                                <option value="2">2 - Bassa 🟢</option>
+                                <option value="1">1 - Minima 🔵</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="task-deadline">Scadenza*</label>
+                            <input type="datetime-local" id="task-deadline" required>
+                        </div>
+                        <div class="form-group half">
+                            <label for="task-category">Categoria*</label>
+                            <select id="task-category" required>
+                                <option value="professionale">Professionale</option>
+                                <option value="personale">Personale</option>
+                                <option value="formazione">Formazione</option>
+                                <option value="amministrativa">Amministrativa</option>
+                                <option value="altro">Altro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="task-energy">Energia richiesta*</label>
+                            <select id="task-energy" required>
+                                <option value="alta">Alta</option>
+                                <option value="media" selected>Media</option>
+                                <option value="bassa">Bassa</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label for="task-time-preference">Preferenza oraria</label>
+                            <select id="task-time-preference">
+                                <option value="mattina">Mattina</option>
+                                <option value="pomeriggio">Pomeriggio</option>
+                                <option value="sera">Sera</option>
+                                <option value="indifferente" selected>Indifferente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-dependencies">Dipendenze</label>
+                        <select id="task-dependencies" multiple>
+                            <!-- Opzioni generate dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="secondary-btn cancel-modal">Annulla</button>
+                        <button type="submit" class="primary-btn">Salva attività</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Altri modali verranno aggiunti qui -->
+    </div>
+
+    <!-- Template per la vista settimanale -->
+    <template id="weekly-view-template">
+        <div id="weekly-view" class="view">
+            <div class="view-header">
+                <h2>Vista Settimanale</h2>
+                <div class="week-navigation">
+                    <button id="prev-week" aria-label="Settimana precedente">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                    <span id="week-range">10 - 16 Aprile 2025</span>
+                    <button id="next-week" aria-label="Settimana successiva">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+            <div class="week-container">
+                <div class="time-column">
+                    <div class="day-header"></div>
+                    <!-- Orari generati dinamicamente -->
+                </div>
+                <div class="days-container">
+                    <!-- Giorni generati dinamicamente -->
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template per la vista giornaliera -->
+    <template id="daily-view-template">
+        <div id="daily-view" class="view">
+            <div class="view-header">
+                <h2>Vista Giornaliera</h2>
+                <div class="day-navigation">
+                    <button id="prev-day" aria-label="Giorno precedente">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                    <span id="current-day">Venerdì 11 Aprile 2025</span>
+                    <button id="next-day" aria-label="Giorno successivo">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+            <div class="day-schedule">
+                <!-- Attività del giorno generate dinamicamente -->
+            </div>
+        </div>
+    </template>
+
+    <!-- Template per l'elemento attività -->
+    <template id="task-item-template">
+        <div class="task-item" data-id="">
+            <div class="task-time">09:00 - 10:30</div>
+            <div class="task-content">
+                <div class="task-header">
+                    <h3 class="task-title">Titolo attività</h3>
+                    <span class="task-priority">🟡</span>
+                </div>
+                <div class="task-details">
+                    <span class="task-category">Professionale</span>
+                    <span class="task-duration">1.5h</span>
+                </div>
+                <div class="task-actions">
+                    <button class="task-edit" aria-label="Modifica">
+                        <span class="material-icons">edit</span>
+                    </button>
+                    <button class="task-complete" aria-label="Completa">
+                        <span class="material-icons">check_circle</span>
+                    </button>
+                    <button class="task-move" aria-label="Sposta">
+                        <span class="material-icons">schedule</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="js/app.js" type="module"></script>
+    <script>
+        // Registrazione del service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service Worker registrato'))
+                    .catch(err => console.error('Errore nella registrazione del Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>
