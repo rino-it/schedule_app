@@ -28,6 +28,7 @@
         <ul>
             <li><button id="btn-show-week">Mostra settimana</button></li>
             <li><button id="btn-show-today">Mostra oggi</button></li>
+            <li><button id="btn-show-all-tasks">Mostra tutte le attività</button></li>
             <li><button id="btn-recalculate">Ricalcola</button></li>
             <li><button id="btn-time-analysis">Analisi tempo</button></li>
             <li><button id="btn-export">Esporta calendario</button></li>
@@ -181,6 +182,64 @@
             </div>
             <div class="day-schedule">
                 <!-- Attività del giorno generate dinamicamente -->
+            </div>
+        </div>
+    </template>
+
+    <!-- Template per la vista di tutte le attività -->
+    <template id="all-tasks-view-template">
+        <div id="all-tasks-view" class="view">
+            <div class="view-header">
+                <h2>Tutte le Attività</h2>
+                <div class="tasks-filter">
+                    <select id="filter-status">
+                        <option value="all">Tutte</option>
+                        <option value="pending">Da completare</option>
+                        <option value="completed">Completate</option>
+                    </select>
+                    <select id="filter-category">
+                        <option value="all">Tutte le categorie</option>
+                        <option value="professionale">Professionale</option>
+                        <option value="personale">Personale</option>
+                        <option value="formazione">Formazione</option>
+                        <option value="amministrativa">Amministrativa</option>
+                        <option value="altro">Altro</option>
+                    </select>
+                    <button id="apply-filters" class="secondary-btn">Applica filtri</button>
+                </div>
+            </div>
+            <div class="tasks-search">
+                <input type="text" id="tasks-search-input" placeholder="Cerca attività..." />
+                <button id="tasks-search-btn">
+                    <span class="material-icons">search</span>
+                </button>
+            </div>
+            <div class="tasks-list-container">
+                <table class="tasks-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="title">Titolo</th>
+                            <th class="sortable" data-sort="priority">Priorità</th>
+                            <th class="sortable" data-sort="category">Categoria</th>
+                            <th class="sortable" data-sort="deadline">Scadenza</th>
+                            <th class="sortable" data-sort="duration">Durata</th>
+                            <th class="sortable" data-sort="status">Stato</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasks-list">
+                        <!-- Le attività verranno inserite qui dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button id="prev-page" disabled>
+                    <span class="material-icons">navigate_before</span>
+                </button>
+                <span id="page-info">Pagina 1 di 1</span>
+                <button id="next-page" disabled>
+                    <span class="material-icons">navigate_next</span>
+                </button>
             </div>
         </div>
     </template>

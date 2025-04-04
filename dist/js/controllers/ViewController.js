@@ -23,6 +23,13 @@ export default class ViewController {
         this.weeklyViewTemplate = document.getElementById('weekly-view-template');
         this.dailyViewTemplate = document.getElementById('daily-view-template');
         this.taskItemTemplate = document.getElementById('task-item-template');
+        this.allTasksViewTemplate = document.getElementById('all-tasks-view-template');
+        
+        // Gestione paginazione per vista tutte le attività
+        this.currentPage = 1;
+        this.tasksPerPage = 10;
+        this.currentSortField = 'deadline';
+        this.currentSortDirection = 'asc';
         
         // Inizializza gli event listener
         this._initEventListeners();
@@ -40,6 +47,7 @@ export default class ViewController {
         // Bottoni del menu
         document.getElementById('btn-show-week').addEventListener('click', () => this.showWeeklyView());
         document.getElementById('btn-show-today').addEventListener('click', () => this.showDailyView(new Date()));
+        document.getElementById('btn-show-all-tasks').addEventListener('click', () => this.showAllTasksView());
         document.getElementById('btn-recalculate').addEventListener('click', () => this.recalculateSchedule());
         document.getElementById('btn-time-analysis').addEventListener('click', () => this.showTimeAnalysis());
         document.getElementById('btn-export').addEventListener('click', () => this.exportCalendar());
@@ -655,6 +663,9 @@ export default class ViewController {
             case 'daily':
                 this.showDailyView(this.currentDate);
                 break;
+            case 'all-tasks':
+                this.showAllTasksView();
+                break;
             case 'welcome':
                 // Nessuna azione necessaria
                 break;
@@ -689,6 +700,375 @@ export default class ViewController {
         const activeModals = this.modalContainer.querySelectorAll('.modal.active');
         activeModals.forEach(modal => {
             modal.classList.remove('active');
+        });
+    }
+
+    /**
+     * Mostra la vista di tutte le attività
+     */
+    showAllTasksView() {
+        // Clona il template
+        const allTasksView = this.allTasksViewTemplate.content.cloneNode(true);
+        
+        // Riferimenti agli elementi della vista
+        const filterStatus = allTasksView.querySelector('#filter-status');
+        const filterCategory = allTasksView.querySelector('#filter-category');
+        const applyFiltersBtn = allTasksView.querySelector('#apply-filters');
+        const searchInput = allTasksView.querySelector('#tasks-search-input');
+        const searchBtn = allTasksView.querySelector('#tasks-search-btn');
+        const tasksList = allTasksView.querySelector('#tasks-list');
+        const prevPageBtn = allTasksView.querySelector('#prev-page');
+        const nextPageBtn = allTasksView.querySelector('#next-page');
+        const pageInfo = allTasksView.querySelector('#page-info');
+        const sortableHeaders = allTasksView.querySelectorAll('th.sortable');
+        
+        // Funzione per filtrare e visualizzare le attività
+        const filterAndDisplayTasks = () => {
+            // Ottieni tutti i task
+            const allTasks = [...this.taskController.tasks];
+            
+            // Applica i filtri
+            let filteredTasks = allTasks;
+            
+            // Filtro per stato
+            if (filterStatus.value !== 'all') {
+                const isCompleted = filterStatus.value === 'completed';
+                filteredTasks = filteredTasks.filter(task => task.completed === isCompleted);
+            }
+            
+            // Filtro per categoria
+            if (filterCategory.value !== 'all') {
+                filteredTasks = filteredTasks.filter(task => task.category === filterCategory.value);
+            }
+            
+            // Filtro di ricerca (nel titolo o nella descrizione)
+            if (searchInput.value.trim() !== '') {
+                const searchQuery = searchInput.value.trim().toLowerCase();
+                filteredTasks = filteredTasks.filter(task => 
+                    task.title.toLowerCase().includes(searchQuery) || 
+                    task.description.toLowerCase().includes(searchQuery)
+                );
+            }
+            
+            // Ordinamento
+            filteredTasks.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch(this.currentSortField) {
+                    case 'title':
+                        aValue = a.title;
+                        bValue = b.title;
+                        break;
+                    case 'priority':
+                        aValue = a.priority;
+                        bValue = b.priority;
+                        break;
+                    case 'category':
+                        aValue = a.category;
+                        bValue = b.category;
+                        break;
+                    case 'deadline':
+                        aValue = new Date(a.deadline);
+                        bValue = new Date(b.deadline);
+                        break;
+                    case 'duration':
+                        aValue = a.duration;
+                        bValue = b.duration;
+                        break;
+                    case 'status':
+                        aValue = a.completed;
+                        bValue = b.completed;
+                        break;
+                    default:
+                        aValue = new Date(a.deadline);
+                        bValue = new Date(b.deadline);
+                }
+                
+                // Per ordinamento ascendente o discendente
+                if (this.currentSortDirection === 'asc') {
+                    if (aValue < bValue) return -1;
+                    if (aValue > bValue) return 1;
+                    return 0;
+                } else {
+                    if (aValue > bValue) return -1;
+                    if (aValue < bValue) return 1;
+                    return 0;
+                }
+            });
+            
+            // Calcola il totale delle pagine
+            const totalPages = Math.ceil(filteredTasks.length / this.tasksPerPage);
+            
+            // Assicura che la pagina corrente sia valida
+            if (this.currentPage > totalPages) {
+                this.currentPage = totalPages > 0 ? totalPages : 1;
+            }
+            
+            // Calcola l'indice di inizio e fine per la paginazione
+            const startIdx = (this.currentPage - 1) * this.tasksPerPage;
+            const endIdx = Math.min(startIdx + this.tasksPerPage, filteredTasks.length);
+            
+            // Ottieni solo i task per la pagina corrente
+            const pagedTasks = filteredTasks.slice(startIdx, endIdx);
+            
+            // Aggiorna le informazioni sulla paginazione
+            pageInfo.textContent = `Pagina ${this.currentPage} di ${totalPages > 0 ? totalPages : 1}`;
+            prevPageBtn.disabled = this.currentPage <= 1;
+            nextPageBtn.disabled = this.currentPage >= totalPages || totalPages === 0;
+            
+            // Pulisci la lista precedente
+            tasksList.innerHTML = '';
+            
+            // Se non ci sono attività
+            if (pagedTasks.length === 0) {
+                const emptyRow = document.createElement('tr');
+                const emptyCell = document.createElement('td');
+                emptyCell.colSpan = 7;
+                emptyCell.textContent = 'Nessuna attività trovata';
+                emptyCell.style.textAlign = 'center';
+                emptyCell.style.padding = '2rem';
+                emptyRow.appendChild(emptyCell);
+                tasksList.appendChild(emptyRow);
+                return;
+            }
+            
+            // Popola la tabella con le attività
+            pagedTasks.forEach(task => {
+                const row = document.createElement('tr');
+                
+                // Titolo
+                const titleCell = document.createElement('td');
+                titleCell.textContent = task.title;
+                if (task.description) {
+                    titleCell.title = task.description;
+                }
+                row.appendChild(titleCell);
+                
+                // Priorità
+                const priorityCell = document.createElement('td');
+                priorityCell.textContent = task.getPriorityEmoji();
+                priorityCell.title = `Priorità: ${task.priority}`;
+                row.appendChild(priorityCell);
+                
+                // Categoria
+                const categoryCell = document.createElement('td');
+                categoryCell.textContent = task.category.charAt(0).toUpperCase() + task.category.slice(1);
+                row.appendChild(categoryCell);
+                
+                // Scadenza
+                const deadlineCell = document.createElement('td');
+                const deadlineDate = new Date(task.deadline);
+                deadlineCell.textContent = DateUtils.formatDateTime(deadlineDate);
+                if (task.isOverdue()) {
+                    deadlineCell.style.color = 'var(--priority-5)';
+                    deadlineCell.style.fontWeight = 'bold';
+                }
+                row.appendChild(deadlineCell);
+                
+                // Durata
+                const durationCell = document.createElement('td');
+                durationCell.textContent = `${task.duration}h`;
+                row.appendChild(durationCell);
+                
+                // Stato
+                const statusCell = document.createElement('td');
+                if (task.completed) {
+                    statusCell.textContent = '✓ Completata';
+                    statusCell.style.color = 'var(--priority-2)';
+                } else if (task.scheduledStart) {
+                    statusCell.textContent = '📅 Pianificata';
+                    statusCell.title = `Pianificata per: ${DateUtils.formatDateTime(new Date(task.scheduledStart))}`;
+                } else {
+                    statusCell.textContent = '⏳ Da pianificare';
+                }
+                row.appendChild(statusCell);
+                
+                // Azioni
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'task-actions';
+                
+                // Pulsante Modifica
+                const editButton = document.createElement('button');
+                editButton.innerHTML = '<span class="material-icons">edit</span>';
+                editButton.title = 'Modifica';
+                editButton.addEventListener('click', () => this.showEditTaskModal(task.id));
+                actionsCell.appendChild(editButton);
+                
+                // Pulsante Completa/Riapri
+                const completeButton = document.createElement('button');
+                if (task.completed) {
+                    completeButton.innerHTML = '<span class="material-icons">refresh</span>';
+                    completeButton.title = 'Riapri';
+                    completeButton.addEventListener('click', () => this._uncompleteTask(task.id));
+                } else {
+                    completeButton.innerHTML = '<span class="material-icons">check_circle</span>';
+                    completeButton.title = 'Completa';
+                    completeButton.addEventListener('click', () => this._completeTask(task.id));
+                }
+                actionsCell.appendChild(completeButton);
+                
+                // Pulsante Elimina
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = '<span class="material-icons">delete</span>';
+                deleteButton.title = 'Elimina';
+                deleteButton.addEventListener('click', () => this._confirmDeleteTask(task.id));
+                actionsCell.appendChild(deleteButton);
+                
+                row.appendChild(actionsCell);
+                
+                // Aggiungi la riga alla tabella
+                tasksList.appendChild(row);
+            });
+        };
+        
+        // Gestione degli eventi di filtro
+        applyFiltersBtn.addEventListener('click', () => {
+            this.currentPage = 1; // Resetta la paginazione
+            filterAndDisplayTasks();
+        });
+        
+        // Gestione della ricerca
+        searchBtn.addEventListener('click', () => {
+            this.currentPage = 1; // Resetta la paginazione
+            filterAndDisplayTasks();
+        });
+        
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                this.currentPage = 1; // Resetta la paginazione
+                filterAndDisplayTasks();
+            }
+        });
+        
+        // Gestione della paginazione
+        prevPageBtn.addEventListener('click', () => {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                filterAndDisplayTasks();
+            }
+        });
+        
+        nextPageBtn.addEventListener('click', () => {
+            this.currentPage++;
+            filterAndDisplayTasks();
+        });
+        
+        // Gestione dell'ordinamento
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const sortField = header.dataset.sort;
+                
+                // Cambia la direzione se è lo stesso campo
+                if (sortField === this.currentSortField) {
+                    this.currentSortDirection = this.currentSortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.currentSortField = sortField;
+                    this.currentSortDirection = 'asc';
+                }
+                
+                // Aggiorna le classi di ordinamento
+                sortableHeaders.forEach(h => {
+                    h.classList.remove('sorted-asc', 'sorted-desc');
+                });
+                
+                header.classList.add(`sorted-${this.currentSortDirection}`);
+                
+                // Ricarica i dati
+                filterAndDisplayTasks();
+            });
+        });
+        
+        // Esegui il filtro iniziale
+        filterAndDisplayTasks();
+        
+        // Imposta l'ordinamento iniziale
+        const deadlineHeader = allTasksView.querySelector('th[data-sort="deadline"]');
+        deadlineHeader.classList.add(`sorted-${this.currentSortDirection}`);
+        
+        // Sostituisci la vista corrente
+        this._switchView(allTasksView, 'all-tasks');
+        
+        // Chiudi il menu
+        this.closeMenu();
+    }
+    
+    /**
+     * Completa un'attività
+     * @param {String} taskId - ID dell'attività da completare
+     * @private
+     */
+    async _completeTask(taskId) {
+        try {
+            await this.taskController.completeTask(taskId);
+            this._showToast('Attività completata con successo', 'success');
+        } catch (error) {
+            console.error('Errore nel completamento dell\'attività:', error);
+            this._showToast('Errore nel completamento dell\'attività', 'error');
+        }
+    }
+    
+    /**
+     * Riapre un'attività completata
+     * @param {String} taskId - ID dell'attività da riaprire
+     * @private
+     */
+    async _uncompleteTask(taskId) {
+        try {
+            await this.taskController.updateTask(taskId, { completed: false, completedAt: null });
+            this._showToast('Attività riaperta con successo', 'success');
+        } catch (error) {
+            console.error('Errore nella riapertura dell\'attività:', error);
+            this._showToast('Errore nella riapertura dell\'attività', 'error');
+        }
+    }
+    
+    /**
+     * Chiede conferma e poi elimina un'attività
+     * @param {String} taskId - ID dell'attività da eliminare
+     * @private
+     */
+    _confirmDeleteTask(taskId) {
+        // Trova l'attività
+        const task = this.taskController.tasks.find(t => t.id === taskId);
+        
+        if (!task) return;
+        
+        // Crea un modale di conferma
+        const confirmModal = document.createElement('div');
+        confirmModal.className = 'modal';
+        
+        confirmModal.innerHTML = `
+            <div class="modal-header">
+                <h2>Conferma eliminazione</h2>
+                <button class="close-modal" aria-label="Chiudi">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p>Sei sicuro di voler eliminare l'attività "<strong>${task.title}</strong>"?</p>
+                <p>Questa operazione non può essere annullata.</p>
+                <div class="form-actions">
+                    <button type="button" class="secondary-btn cancel-modal">Annulla</button>
+                    <button type="button" class="primary-btn confirm-delete">Elimina</button>
+                </div>
+            </div>
+        `;
+        
+        // Aggiungi il modale al container
+        this.modalContainer.innerHTML = '';
+        this.modalContainer.appendChild(confirmModal);
+        this.modalContainer.classList.add('active');
+        
+        // Gestisci gli eventi
+        confirmModal.querySelector('.close-modal').addEventListener('click', () => this.closeModal());
+        confirmModal.querySelector('.cancel-modal').addEventListener('click', () => this.closeModal());
+        confirmModal.querySelector('.confirm-delete').addEventListener('click', async () => {
+            try {
+                await this.taskController.deleteTask(taskId);
+                this.closeModal();
+                this._showToast('Attività eliminata con successo', 'success');
+            } catch (error) {
+                console.error('Errore nell\'eliminazione dell\'attività:', error);
+                this._showToast('Errore nell\'eliminazione dell\'attività', 'error');
+            }
         });
     }
 }

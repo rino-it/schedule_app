@@ -448,7 +448,7 @@ textarea {
 }
 
 .task-actions button:hover {
-    color: var(--primary-color);
+    background-color: var(--light);
 }
 
 /* Responsive */
@@ -544,4 +544,102 @@ textarea {
     direction: ltr;
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
+}
+
+/* Stili per la vista tutte le attività */
+.tasks-filter {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.tasks-search {
+    display: flex;
+    margin-bottom: var(--spacing-md);
+}
+
+.tasks-search input {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    border: 1px solid var(--medium-light);
+    border-right: none;
+}
+
+.tasks-search button {
+    padding: var(--spacing-sm);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.tasks-list-container {
+    margin-bottom: var(--spacing-md);
+    overflow-x: auto;
+}
+
+.tasks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-md);
+}
+
+.tasks-table th, 
+.tasks-table td {
+    text-align: left;
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--medium-light);
+}
+
+.tasks-table th {
+    background-color: var(--light);
+    font-weight: 600;
+}
+
+.tasks-table th.sortable {
+    cursor: pointer;
+}
+
+.tasks-table th.sortable:hover {
+    background-color: var(--medium-light);
+}
+
+.tasks-table th.sortable.sorted-asc::after {
+    content: "↑";
+    margin-left: var(--spacing-xs);
+}
+
+.tasks-table th.sortable.sorted-desc::after {
+    content: "↓";
+    margin-left: var(--spacing-xs);
+}
+
+.tasks-table tbody tr:hover {
+    background-color: rgba(74, 144, 226, 0.05);
+}
+
+.tasks-table .task-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: flex-end;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.pagination button {
+    background-color: var(--white);
+    border: 1px solid var(--medium-light);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xs);
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
